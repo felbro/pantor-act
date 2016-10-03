@@ -56,6 +56,7 @@ namespace ACT
       // ... text
       template <typename T>
       void encodeText (const T &, bool last = false) const;
+	  void encodePriceText (const u64 , bool last = false) const;
 
       //
       bool binary;

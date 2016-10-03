@@ -1,5 +1,5 @@
 #include "Enc.h"
-
+#include <iomanip>
 using namespace ACT;
 
 void
@@ -61,13 +61,28 @@ Encoder::encodeBin (const std::string & s, u32 size) const
 template <typename T> void
 Encoder::encodeText (const T & v, bool last) const
 {
-   std::cout << v;
+   std::cout <<  v;
 
    if (last)
       std::cout << std::endl;
    else
 //    std::cout << "\t";
       std::cout << "|";
+}
+
+void
+Encoder::encodePriceText (const u64 v, bool last) const
+{
+	u64 first = v/10000;
+	u64 second = v % 10000;
+	
+	std::cout << first << "." << std::setprecision (4) << second;
+	
+	if (last)
+		std::cout << std::endl;
+	else
+		std::cout << "|";
+
 }
 
 static inline double
@@ -105,7 +120,7 @@ Encoder::send (const Private::InsertOrder & m)
       encodeText (m.instrumentId);
       encodeText (m.clientId);
       encodeText (m.clientOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity);
       encodeText (side);
       encodeText (tif, true);
@@ -184,7 +199,7 @@ Encoder::send (const Private::ReplaceOrder & m)
       encodeText (m.clientId);
       encodeText (m.clientOrderId);
       encodeText (m.newClientOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity, true);
    }
 }
@@ -225,7 +240,7 @@ Encoder::send (const Private::InsertOrderReply & m)
       encodeText (m.clientId);
       encodeText (m.clientOrderId);
       encodeText (m.serverOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity);
       encodeText (side);
       encodeText (tif, true);
@@ -324,7 +339,7 @@ Encoder::send (const Private::ReplaceOrderReply & m)
       encodeText (m.oldClientOrderId);
       encodeText (m.newClientOrderId);
       encodeText (m.serverOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity, true);
    }
 }
@@ -474,7 +489,7 @@ Encoder::send (const Public::IndexInfo & m)
       encodeText (seqNo);
       encodeText (m.msgTsp);
       encodeText (m.indexId);
-      encodeText (toFloat (m.value));
+      encodePriceText (m.value);
       encodeText (priceType);
       encodeText (status);
       encodeText (m.name, true);
@@ -515,9 +530,9 @@ Encoder::send (const Public::IndexMemberInfo & m)
       encodeText (m.instrumentId);
       encodeText (m.prevShares);
       encodeText (m.currShares);
-      encodeText (toFloat (m.prevPrice));
-      encodeText (toFloat (m.issueAmount));
-      encodeText (toFloat (m.dividend));
+      encodePriceText (m.prevPrice);
+      encodePriceText (m.issueAmount);
+      encodePriceText (m.dividend);
       encodeText (status, true);
    }
 }
@@ -545,7 +560,7 @@ Encoder::send (const Public::IndexUpdate & m)
       encodeText (seqNo);
       encodeText (m.msgTsp);
       encodeText (m.indexId);
-      encodeText (toFloat (m.value), true);
+      encodePriceText (m.value, true);
    }
 }
 
@@ -577,7 +592,7 @@ Encoder::send (const Public::OrderInserted & m)
       encodeText (m.msgTsp);
       encodeText (m.instrumentId);
       encodeText (m.serverOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity);
       encodeText (side, true);
    }
@@ -667,7 +682,7 @@ Encoder::send (const Public::OrderReplaced & m)
       encodeText (m.instrumentId);
       encodeText (m.serverOrderId);
       encodeText (m.newServerOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity, true);
    }
 }
@@ -698,7 +713,7 @@ Encoder::send (const Public::OrderExecuted & m)
       encodeText (m.msgTsp);
       encodeText (m.instrumentId);
       encodeText (m.serverOrderId);
-      encodeText (toFloat (m.price));
+      encodePriceText (m.price);
       encodeText (m.quantity, true);
    }
 }
@@ -729,9 +744,9 @@ Encoder::send (const Public::TopOfBook & m)
       encodeText (seqNo);
       encodeText (m.msgTsp);
       encodeText (m.instrumentId);
-      encodeText (toFloat (m.bidPrice));
+      encodePriceText (m.bidPrice);
       encodeText (m.bidQuantity);
-      encodeText (toFloat (m.askPrice));
+      encodePriceText (m.askPrice);
       encodeText (m.askQuantity, true);
    }
 }
@@ -761,8 +776,8 @@ Encoder::send (const Public::TradeStats & m)
       encodeText (seqNo);
       encodeText (m.msgTsp);
       encodeText (m.instrumentId);
-      encodeText (toFloat (m.lastPrice));
+      encodePriceText (m.lastPrice);
       encodeText (m.lastQuantity);
-      encodeText (toFloat (m.vwapPrice), true);
+      encodePriceText (m.vwapPrice, true);
    }
 }
