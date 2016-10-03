@@ -76,7 +76,7 @@ Encoder::encodePriceText (const u64 v, bool last) const
 	u64 first = v/10000;
 	u64 second = v % 10000;
 	
-	std::cout << first << "." << std::setprecision (4) << second;
+	std::cout << first << "." << second;
 	
 	if (last)
 		std::cout << std::endl;
@@ -531,7 +531,7 @@ Encoder::send (const Public::IndexMemberInfo & m)
       encodeText (m.prevShares);
       encodeText (m.currShares);
       encodePriceText (m.prevPrice);
-      encodePriceText (m.issueAmount);
+      encodeText (m.issueAmount);
       encodePriceText (m.dividend);
       encodeText (status, true);
    }
