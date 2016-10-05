@@ -1,3 +1,14 @@
+# ACT Developer Guide
+
+The core functionality of the ACT platforms resides in this git repository that is
+managed by senior ACT personnel. As an intern you have access to this 
+repository and it will provide guidance to you when you are solving tasks. 
+
+The ACT platform has functions that handles decoding and encoding of binary EMP
+messages. These functions may be used when solving tasks to reduce the
+complexity and to focus your effort on the logic operations of the tasks. 
+
+As an intern you are encouraged to fork this repository. Once you have completed any of the tasks you are welcome to send the link to your forked repository to [act-support](mailto:act-support@pantor.com).
 
 ## Setting up the development environment
 
@@ -297,8 +308,3 @@ As we can see, the output is identical to output.txt.
 The different tasks you will attempt provides input examples in text format, which can be used to further test the functionality of the decoder-encoder. The [specification](/spec) also provides text encoding examples of the Epsilon Message Protocol. Make sure to properly review the EMP specification before/whilst solving tasks, in order to understand how the messages should be interpreted and also figure out how the internal (decoded) representation is made in the ACT-platform. 
 
 Hopefully this is enough information for you to start your progress as an intern at ACT. If you encounter any difficulties, do not hesitate to contact [ACT support](mailto:act-support@pantor.com) via email.
-
-
-
-
-
