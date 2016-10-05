@@ -305,6 +305,6 @@ Decoder: Binary...
 ```
 As we can see, the output is identical to output.txt.
 
-The different tasks you will attempt provides input examples in text format, which can be used to further test the functionality of the decoder-encoder. The [specification](/spec) also provides text encoding examples of the Epsilon Message Protocol. Make sure to properly review the EMP specification before/whilst solving tasks, in order to understand how the messages should be interpreted and also figure out how the internal (decoded) representation is made in the ACT-platform. 
+The different tasks you will attempt provides input examples in text format, which can be used to further test the functionality of the decoder-encoder. The [specification](http://act.pantor.com/spec) also provides text encoding examples of the Epsilon Message Protocol. Make sure to properly review the EMP specification before/whilst solving tasks, in order to understand how the messages should be interpreted and also figure out how the internal (decoded) representation is made in the ACT-platform. 
 
 Hopefully this is enough information for you to start your progress as an intern at ACT. If you encounter any difficulties, do not hesitate to contact [ACT support](mailto:act-support@pantor.com) via email.
