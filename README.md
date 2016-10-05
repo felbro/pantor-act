@@ -1,26 +1,21 @@
-## Setting up the environment
 
-The core functionality of the ACT platforms resides in this git repository that is
-managed by senior ACT personnel. As an intern you have access to this 
-repository and it will provide guidance to you when you are solving tasks. 
+## Setting up the development environment
 
-The ACT platform has functions that handles decoding and encoding of binary EMP
-messages. These functions may be used when solving tasks to reduce the
-complexity and to focus your effort on the logic operations of the tasks. 
+The ACT software can be built on MAC OS and Linux, we recommend Windows users to use a virtual machine software and install a Linux operating system. A recommendation is using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) together with [Ubuntu](http://www.ubuntu.com/download).
+ 
+To install VirtualBox, the process is nearly identical on Windows, Linux and Mac. Since VirtualBox, or another VM software will be necessary for Windows, we recommend following this guide:
+http://www.psychocats.net/ubuntu/virtualbox
 
-#### NOTE: This guide is for Mac and Linux users only.
+And we recommend using Ubuntu version 16.04.1 LTS as a disk image for VirtualBox: 
+http://www.ubuntu.com/download/desktop
 
- As the ACT platform is written on UNIX machines, we recommend Windows users to use some sort of virtual machine software and install a Linux operating system. A recommendation is using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) together with [Ubuntu](http://www.ubuntu.com/download).
+Other versions of Linux might lack dependencies that our tools require, hence we recommend sticking to this guide to streamline the procedure.
 
-Even though we do not support it, it might be possible to compile the core-toolset with Visual Studios (VS) on Windows. However this requires some porting of system library header files and is not yet functionally tested by the ACT staff. 
+#### Installing CMake
 
-### 1: Building the core toolset
+Building the code-tree will require the program CMake.
 
-The code-tree is built with CMake, which uses the provided CMakeLists.txt files in order to generate makefiles which in turn are used to compile the tree. Looking into those textfiles will hopefully give you an idea on how to add your solutions for compilation and to link them to the core library. However, this requires CMake to be installed on your machine.
-
-#### 1.1 Installing CMake
-
-**1.) Check if CMake is installed**
+**Check if CMake is installed**
 
 Open up a terminal and type:
 
@@ -31,11 +26,12 @@ cmake version 2.8.12.2
 
 If CMake is not installed, you will receive a "command not found" error. Make sure that your CMake version is 2.6 or newer, otherwise the tree will not compile. 
 
-**2.) Install Homebrew (Mac users)**
+
+**Mac:** 
 
 A neat way to install tools and programs is through Homebrew. If you already have Homebrew installed you can skip this step.
 
-To check if you have brew installed, do the same as step 1.) although substituting "cmake" with "brew".
+To check if you have brew installed, do the version check again, although substitute "cmake" with "brew".
 
 ```
 $ brew --version
@@ -49,19 +45,128 @@ You can install Homebrew via the terminal. Simply paste the following:
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
-If you are on a *Linux* machine, there is a similar tool called [Linuxbrew](http://linuxbrew.sh/), which is a fork of Homebrew. Follow the instructions given in the link provided.
-
-**3.) Installing CMake**
-
 With Homebrew installed, it is easy to install loads of utilities. To install CMake, input the following to your terminal:
 
 ```
 $ brew install cmake
 ```
 
-#### 1.2 Compiling the core-tree
+**Ubuntu:** simply input into terminal:
 
-With CMake installed, the code can now be compiled. Do the following in your terminal, make sure you are standing in the act directory:
+```
+$ sudo apt-get install cmake
+```
+
+Now you have cmake installed!
+
+### 1: Cloning the ACT repository
+
+GitHub offers two ways to clone directories via the terminal; either via an HTTPS-link or via an SSH-link to the repository. We recommend you to use the latter, although this requires some setup in the form of generating an SSH-key, adding it to your ssh-agent and to your GitHub account. 
+
+#### 1.1: Cloning with HTTPS:
+
+Open up a terminal and jump to a directory where you want to store the repository. 
+
+```
+$ cd Documents/
+```
+
+Then simply clone the repository as follows:
+
+```
+$ git clone https://github.com/pantor-engineering/act.git
+```
+
+You may be prompted to enter your GitHub username and password, after which you can enter the repository locally:
+
+```
+$ cd act
+```
+ 
+#### 1.2 Cloning with SSH (Recommended):
+
+As mentioned above, you need an SSH key linked to your GitHub account (and preferably added to your ssh-agent) in order to clone and alter the repository via SSH. If you already have an SSH key, you can link this to your GitHub account instead. 
+
+ **1.) Check for existing SSH-keys:**
+
+Open a Terminal and input the following to list your existing SSH keys. If you do not have any keys you will get no response.
+
+```
+$ ls -al ~/.ssh
+#Lists the files in your .ssh directory, if they exist.
+```
+
+Notice that public ssh keys are by default named one of the following:
+
+```
+> id_rsa.pub
+> id_dsa.pub
+> id_ecdsa.pub
+> id_ed25519.pub 
+```
+
+ **2.) Generating a new SSH key**
+
+Open a Terminal and enter the text below, substituting the email with your GitHub email address. If it prompts you to overwrite an existing file, this means you already have a generated ssh-key with the same name. You should not overwrite this if you are using it for other services.
+
+```
+$ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+#Creates a new ssh key, using the provided email as a label
+Generating public/private rsa key pair.
+```
+
+You will be prompted to enter a path to a file in which to save the key. By pressing Enter you accept the default file location (recommended)
+
+```
+Enter a file in which to save the key (/Users/you/.ssh/id_rsa): [Press enter]
+```
+
+If you wish to change the name of the file containing the private/public key you should enter a path and filename manually.
+
+You will then be prompted to enter a passphrase for your SSH-key. This will be used when you attempt to add your SSH key to your GitHub account for example. By adding the key to your ssh-agent, you will not have to enter the passphrase each time you use the key, as shown below.
+
+
+**3.) Adding your SSH key to the ssh-agent**
+
+First ensure that ssh-agent is enabled:
+
+```
+#start the ssh-agent in the background
+$ eval "$(ssh-agent -s)"
+Agent pid 59566
+```
+ 
+Now you can add your SSH key to the ssh-agent. If you used an existing key rather than generating a new one, or chose to have a different name on your SSH key, you need to replace the *id_rsa* in the command below with the name of your private key file.
+
+```
+$ ssh-add ~/.ssh/id_rsa
+```
+
+**4.) Add the SSH key to you GitHub account.**
+
+Instructions on how to add your SSH key to your GitHub account can be found here:
+[Adding a new SSH key to your GitHub account]: https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/ "addtogithub"
+[Adding a new SSH key to your GitHub account]\
+
+
+**5.) Cloning the repository**
+
+Now all that is left is to clone the repository:
+
+```
+$ git clone git@github.com:pantor-engineering/act.git
+$ cd act
+```
+
+In order to use the tools provided however, the code needs to be built properly which leads us to the next section.
+
+### 2: Building the core toolset
+
+The code-tree is built with CMake, which uses the provided CMakeLists.txt files from the next section in order to generate makefiles which in turn are used to compile the tree. Looking into those textfiles will hopefully give you an idea on how to add your solutions for compilation and to link them to the core library. 
+
+#### 2.1 Compiling the core-tree
+
+Do the following in your terminal, make sure you are standing in the act directory:
 
 ```
 $ cd act
@@ -74,7 +179,6 @@ $ cd build
 #Jump to that directory
 
 $ cmake ..
-$ cmake --build
 
 ```
 
@@ -92,6 +196,7 @@ If you want to clean the directory of executables, simply enter:
 ```
 $ make clean
 ```
+Note that cleaning will remove the executable used in chapter 3, and 'make' will generate a new one.
 
 For further instructions on the make commands:
 
@@ -102,13 +207,14 @@ $ make help
 If you are uncertain or wish to gain additional information regarding Makefiles and CMake, read up on content not provided by the ACT organization.
 
 
-### 2: Running the build
+### 3: Running the build
 
-With the build compiled, there will now exist executables that can be run. You can see sample solutions provided under the `/act/solutions/` directory (and the executables in `/act/build/solutions/`). There is also a "tools" directory which illustrates the funcitonality of the core decoder-encoder provided. Having a look at those might give some instructions on how they can be run (looking at the main function will give an intuition of what flags that can be passed). An example will be given on how to run an executable properly below. The example will utilize the secho.cc tool as it simply echoes the input messages, giving decoder-encoder intuition. 
+With the build compiled, there will now exist executables that can be run. You can see sample solutions provided under the `/act/solutions/` directory (and the executables in `/act/build/solutions/`). There is also a "tools" directory which illustrates the funcitonality of the core decoder-encoder provided. Having a look at those might give some instructions on how they can be run (looking at the main function will give an intuition of what flags that can be passed). An example will be given on how to run an executable properly below. The secho.cc tool works like an echo-tool, with the exception of an internal MsgSeqNo counter it will add and send (encode) to the messages in std::cout.
 
 With that said, the core-program will therefor need input. In the simplified trading platform that ACT provides, there is only two streams of data: Standard Input (std::cin) and Standard Output (std::cout). Thus, these streams will handle input and output for both Client and Exchange (ESE) messages.
 
-Now with some description at hand, let's go through how to run the program.
+Now with some description at hand, let's go through how to run the program. You may want the specifications document readily available while doing this. Please see: http://act.pantor.com/spec/
+and read up on "EMP text encoding" and "Message layout"
 
 Standing in the `act/build/tools/` directory:
 
