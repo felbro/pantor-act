@@ -1,7 +1,7 @@
 ## Setting up the environment
 
-The core functionality of the ACT platforms resides in a git repository that is
-managed by senior ACT personnel. As an intern you will get access to this 
+The core functionality of the ACT platforms resides in this git repository that is
+managed by senior ACT personnel. As an intern you have access to this 
 repository and it will provide guidance to you when you are solving tasks. 
 
 The ACT platform has functions that handles decoding and encoding of binary EMP
