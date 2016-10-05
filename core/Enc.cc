@@ -75,8 +75,17 @@ Encoder::encodePriceText (const u64 v, bool last) const
 {
 	u64 first = v/10000;
 	u64 second = v % 10000;
-	
-	std::cout << first << "." << second;
+
+	std::cout << first << ".";
+
+	if (second < 10)
+		std::cout << "000" << second;	
+	else if (second < 100)
+		std::cout << "00" << second;
+	else if (second < 1000)
+		std::cout << "0" << second;
+	else
+		std::cout << second;
 	
 	if (last)
 		std::cout << std::endl;
