@@ -81,12 +81,12 @@ struct StatsObserver : public MsgObserver
 
 
                 if(m.side == Side::Buy) {
-                        IObuy [m.instrumentId].push_back(m);
+
 
 
 
                         s.instrumentId = m.instrumentId;
-                        if ((IS [m.instrumentId].bbp < m.price) || nrBuy == 0) {
+                        if ((IS [m.instrumentId].bbp < m.price) || IObuy[m.instrumentId].empty()) {
                                 IS [m.instrumentId].bbp = m.price;
                                 IS [m.instrumentId].tbq = m.quantity;
                                 s.bidPrice = m.price;
@@ -96,14 +96,16 @@ struct StatsObserver : public MsgObserver
                                 IS [m.instrumentId].tbq += m.quantity;
                                 s.bidQuantity = IS [m.instrumentId].tbq;
                         }
+                        IObuy [m.instrumentId].push_back(m);
                         enc.send (s);
-                        nrBuy++;
+
                 }
 
                 else {
-                        IOsell [m.instrumentId].push_back(m);
+
                         s.instrumentId = m.instrumentId;
-                        if((IS [m.instrumentId].bap > m.price) || nrSell == 0) {
+
+                        if((IS [m.instrumentId].bap > m.price) || IOsell[m.instrumentId].empty()) {
                                 IS [m.instrumentId].bap = m.price;
                                 IS [m.instrumentId].taq = m.quantity;
                                 s.askPrice = m.price;
@@ -113,8 +115,9 @@ struct StatsObserver : public MsgObserver
                                 IS [m.instrumentId].taq += m.quantity;
                                 s.askQuantity = IS [m.instrumentId].taq;
                         }
+                        IOsell [m.instrumentId].push_back(m);
                         enc.send (s);
-                        nrSell++;
+
                 }
 
         }
@@ -214,12 +217,6 @@ struct StatsObserver : public MsgObserver
         InstrumentOrders IObuy;
         InstrumentOrders IOsell;
         Public::TopOfBook s;
-
-        u32 nrBuy = 0;
-        u32 nrSell = 0;
-
-        Public::OrderInserted prevBestBid;
-        Public::OrderInserted prevBestAsk;
 
 
         Encoder enc;
