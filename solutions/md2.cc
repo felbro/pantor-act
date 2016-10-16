@@ -41,7 +41,7 @@ struct StatsObserver : public MsgObserver
         // serverOrderId mapped order
         typedef std::map<u64, Public::OrderInserted> Orders;
         Orders OS;
-        // instrumentId mapped to all orders. THIS CAN BE ALTERED TO MAP TO serverOrderId and look there
+        // instrumentId mapped to all orders.
         typedef std::map<u32, std::vector<u64> > InstrumentOrders;
         InstrumentOrders IObuy;
         InstrumentOrders IOsell;
@@ -136,8 +136,6 @@ struct StatsObserver : public MsgObserver
         }
 
 
-
-
         void onOrderDeleted (const Public::OrderDeleted & m) override {
 
 
@@ -162,41 +160,24 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].side == Side::Buy) {
 
                         sort(IObuy [m.instrumentId].begin(),IObuy [m.instrumentId].end(),sortbyPriceDesc);
-                        toErase(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity, OS [m.serverOrderId].side);
+                        toErase(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity);
                 }
                 else{
                         sort(IOsell [m.instrumentId].begin(),IOsell [m.instrumentId].end(),sortbyPriceAsc);
 
-                        toErase(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity, OS [m.serverOrderId].side);
+                        toErase(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity);
                 }
 
                 OS.erase (m.serverOrderId);
 
         }
 
-        void toErase(Public::OrderDeleted m, std::vector<u64> & vec, u64 & p, u64 & q, Side side){
+        void toErase(Public::OrderDeleted m, std::vector<u64> & vec, u64 & p, u64 & q){
                 if (OS [m.serverOrderId].price == p) {
 
                         q -= OS [m.serverOrderId].quantity;
 
-                        if(q == 0) {
-
-                                if(vec.size() > 1) {
-
-                                        p = OS[vec[1]].price;
-                                        u64 tmp = 0;
-                                        unsigned int i = 1;
-
-                                        while(OS[vec[i]].price == p && i < vec.size()) {
-                                                tmp += OS[vec[i]].quantity;
-                                                i++;
-                                        }
-                                        q = tmp;
-
-                                }
-                                else p = 0;
-
-                        }
+                        if(q == 0) decreaseAndReplace(vec,p,q);
                         vec.erase(vec.begin());
 
                         enc.send(IS [m.instrumentId]);
@@ -211,11 +192,22 @@ struct StatsObserver : public MsgObserver
                 }
         }
 
+        void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
+                if(vec.size() > 1) {
 
-        void onOrderReplaced (const Public::OrderReplaced & m ) override {
+                        p = OS[vec[1]].price;
+                        u64 tmp = 0;
+                        unsigned int i = 1;
 
+                        while(OS[vec[i]].price == p && i < vec.size()) {
+                                tmp += OS[vec[i]].quantity;
+                                i++;
+                        }
+                        q = tmp;
+
+                }
+                else p = 0;
         }
-
 
 
         void onOrderExecuted (const Public::OrderExecuted & m) override {
@@ -243,7 +235,45 @@ struct StatsObserver : public MsgObserver
                         abort();
                 }
 
+                auto sortbyPriceDesc = [&](const u64 lhs,const u64 rhs)->bool {
 
+                        return OS[lhs].price > OS[rhs].price;
+                };
+
+                auto sortbyPriceAsc = [&](const u64 lhs,const u64 rhs)->bool {
+
+                        return OS[lhs].price < OS[rhs].price;
+                };
+
+
+                OS[m.serverOrderId].quantity -= m.quantity;
+
+
+                if (OS [m.serverOrderId].side == Side::Buy) {
+                        sort(IObuy [m.instrumentId].begin(),IObuy [m.instrumentId].end(),sortbyPriceDesc);
+                        toExecute(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity);
+                }
+                else{
+                        sort(IOsell [m.instrumentId].begin(),IOsell [m.instrumentId].end(),sortbyPriceAsc);
+                        toExecute(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity);
+                }
+                if(OS[m.serverOrderId].quantity == 0) OS.erase(m.serverOrderId);
+
+        }
+
+        void toExecute(Public::OrderExecuted m, std::vector<u64> & vec, u64 & p, u64 & q){
+                if (OS [m.serverOrderId].price == p) {
+                        q -= m.quantity;
+
+                        if(q == 0) decreaseAndReplace(vec,p,q);
+                        vec.erase(vec.begin());
+
+                        enc.send(IS [m.instrumentId]);
+                }
+        }
+
+
+        void onOrderReplaced (const Public::OrderReplaced & m ) override {
 
         }
 
