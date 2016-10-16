@@ -42,7 +42,7 @@ struct StatsObserver : public MsgObserver
         typedef std::map<u64, Public::OrderInserted> Orders;
         Orders OS;
         // instrumentId mapped to all orders. THIS CAN BE ALTERED TO MAP TO serverOrderId and look there
-        typedef std::map<u32, std::vector<Public::OrderInserted> > InstrumentOrders;
+        typedef std::map<u32, std::vector<u64> > InstrumentOrders;
         InstrumentOrders IObuy;
         InstrumentOrders IOsell;
 
@@ -112,7 +112,7 @@ struct StatsObserver : public MsgObserver
                                 IS [m.instrumentId].bidQuantity += m.quantity;
 
                         }
-                        IObuy [m.instrumentId].push_back(m);
+                        IObuy [m.instrumentId].push_back(m.serverOrderId);
                         enc.send (IS [m.instrumentId]);
 
                 }
@@ -128,22 +128,18 @@ struct StatsObserver : public MsgObserver
                                 IS [m.instrumentId].askQuantity += m.quantity;
 
                         }
-                        IOsell [m.instrumentId].push_back(m);
+                        IOsell [m.instrumentId].push_back(m.serverOrderId);
                         enc.send (IS [m.instrumentId]);
 
                 }
 
         }
 
-        static bool sortbyPriceDesc(const Public::OrderInserted &lhs, const Public::OrderInserted &rhs) {
-                return lhs.price > rhs.price;
-        }
 
-        static bool sortbyPriceAsc(const Public::OrderInserted &lhs, const Public::OrderInserted &rhs) {
-                return lhs.price < rhs.price;
-        }
+
 
         void onOrderDeleted (const Public::OrderDeleted & m) override {
+
 
                 const auto it = OS.find (m.serverOrderId);
                 if (it == OS.end ())
@@ -151,12 +147,26 @@ struct StatsObserver : public MsgObserver
                         std::cerr << "Error: Unknown order: " << m.toString() << std::endl;
                         abort ();
                 }
+
+                auto sortbyPriceDesc = [&](const u64 lhs,const u64 rhs)->bool {
+
+                        return OS[lhs].price > OS[rhs].price;
+                };
+
+                auto sortbyPriceAsc = [&](const u64 lhs,const u64 rhs)->bool {
+
+                        return OS[lhs].price < OS[rhs].price;
+                };
+
+
                 if (OS [m.serverOrderId].side == Side::Buy) {
+
                         sort(IObuy [m.instrumentId].begin(),IObuy [m.instrumentId].end(),sortbyPriceDesc);
                         toErase(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity, OS [m.serverOrderId].side);
                 }
                 else{
                         sort(IOsell [m.instrumentId].begin(),IOsell [m.instrumentId].end(),sortbyPriceAsc);
+
                         toErase(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity, OS [m.serverOrderId].side);
                 }
 
@@ -164,7 +174,7 @@ struct StatsObserver : public MsgObserver
 
         }
 
-        void toErase(Public::OrderDeleted m, std::vector<Public::OrderInserted> & vec, u64 & p, u64 & q, Side side){
+        void toErase(Public::OrderDeleted m, std::vector<u64> & vec, u64 & p, u64 & q, Side side){
                 if (OS [m.serverOrderId].price == p) {
 
                         q -= OS [m.serverOrderId].quantity;
@@ -173,12 +183,12 @@ struct StatsObserver : public MsgObserver
 
                                 if(vec.size() > 1) {
 
-                                        p = vec[1].price;
+                                        p = OS[vec[1]].price;
                                         u64 tmp = 0;
                                         unsigned int i = 1;
 
-                                        while(vec[i].price == p && i < vec.size()) {
-                                                tmp += vec[i].quantity;
+                                        while(OS[vec[i]].price == p && i < vec.size()) {
+                                                tmp += OS[vec[i]].quantity;
                                                 i++;
                                         }
                                         q = tmp;
@@ -193,7 +203,7 @@ struct StatsObserver : public MsgObserver
                 }
                 else {
                         for (unsigned i = 0; i < vec.size(); i++) {
-                                if (vec[i].serverOrderId == m.serverOrderId) {
+                                if (OS[vec[i]].serverOrderId == m.serverOrderId) {
                                         vec.erase(vec.begin()+i);
                                         break;
                                 }
