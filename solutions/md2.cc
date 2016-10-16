@@ -29,6 +29,26 @@ struct InstrumentStats
 
 struct StatsObserver : public MsgObserver
 {
+        bool trace;
+        // instrumentId mapped to name
+        typedef std::map<u32, std::string> Instruments;
+        Instruments instruments;
+
+        //InstrumentId mapped to corresponding TOB
+        typedef std::map<u32, Public::TopOfBook> InStats;
+        InStats IS;
+
+        // serverOrderId mapped order
+        typedef std::map<u64, Public::OrderInserted> Orders;
+        Orders OS;
+        // instrumentId mapped to all orders. THIS CAN BE ALTERED TO MAP TO serverOrderId and look there
+        typedef std::map<u32, std::vector<Public::OrderInserted> > InstrumentOrders;
+        InstrumentOrders IObuy;
+        InstrumentOrders IOsell;
+
+
+        Encoder enc;
+
 
         StatsObserver () {
         }
@@ -50,6 +70,7 @@ struct StatsObserver : public MsgObserver
                 else
                 {
                         instruments.clear();
+
                         IS.clear();
                         OS.clear();
                         IObuy.clear();
@@ -61,8 +82,9 @@ struct StatsObserver : public MsgObserver
         onInstrumentInfo (const Public::InstrumentInfo & m) override
         {
                 instruments [m.instrumentId] = m.name;
-                InstrumentStats i;
-                IS [m.instrumentId] = i;
+
+                Public::TopOfBook s;
+                IS [m.instrumentId] = s;
         }
         void orderError(const Public::OrderInserted & m){
                 std::cerr << "ERROR: Unknown instrument: " << m.toString () << std::endl;
@@ -79,44 +101,35 @@ struct StatsObserver : public MsgObserver
 
                 OS [m.serverOrderId] = m;
 
-
                 if(m.side == Side::Buy) {
 
+                        if ((IS [m.instrumentId].bidPrice < m.price) || IObuy[m.instrumentId].empty()) {
+                                IS [m.instrumentId].bidPrice = m.price;
+                                IS [m.instrumentId].bidQuantity = m.quantity;
 
-
-
-                        s.instrumentId = m.instrumentId;
-                        if ((IS [m.instrumentId].bbp < m.price) || IObuy[m.instrumentId].empty()) {
-                                IS [m.instrumentId].bbp = m.price;
-                                IS [m.instrumentId].tbq = m.quantity;
-                                s.bidPrice = m.price;
-                                s.bidQuantity = m.quantity;
                         }
-                        else if (IS [m.instrumentId].bbp == m.price ) {
-                                IS [m.instrumentId].tbq += m.quantity;
-                                s.bidQuantity = IS [m.instrumentId].tbq;
+                        else if (IS [m.instrumentId].bidPrice == m.price ) {
+                                IS [m.instrumentId].bidQuantity += m.quantity;
+
                         }
                         IObuy [m.instrumentId].push_back(m);
-                        enc.send (s);
+                        enc.send (IS [m.instrumentId]);
 
                 }
 
                 else {
 
-                        s.instrumentId = m.instrumentId;
+                        if((IS [m.instrumentId].askPrice > m.price) || IOsell[m.instrumentId].empty()) {
+                                IS [m.instrumentId].askPrice = m.price;
+                                IS [m.instrumentId].askQuantity = m.quantity;
 
-                        if((IS [m.instrumentId].bap > m.price) || IOsell[m.instrumentId].empty()) {
-                                IS [m.instrumentId].bap = m.price;
-                                IS [m.instrumentId].taq = m.quantity;
-                                s.askPrice = m.price;
-                                s.askQuantity = m.quantity;
                         }
-                        else if (IS [m.instrumentId].bap == m.price) {
-                                IS [m.instrumentId].taq += m.quantity;
-                                s.askQuantity = IS [m.instrumentId].taq;
+                        else if (IS [m.instrumentId].askPrice == m.price) {
+                                IS [m.instrumentId].askQuantity += m.quantity;
+
                         }
                         IOsell [m.instrumentId].push_back(m);
-                        enc.send (s);
+                        enc.send (IS [m.instrumentId]);
 
                 }
 
@@ -140,11 +153,11 @@ struct StatsObserver : public MsgObserver
                 }
                 if (OS [m.serverOrderId].side == Side::Buy) {
                         sort(IObuy [m.instrumentId].begin(),IObuy [m.instrumentId].end(),sortbyPriceDesc);
-                        toErase(m, IObuy [m.instrumentId], IS [m.instrumentId].bbp, IS [m.instrumentId].tbq, OS [m.serverOrderId].side);
+                        toErase(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity, OS [m.serverOrderId].side);
                 }
                 else{
                         sort(IOsell [m.instrumentId].begin(),IOsell [m.instrumentId].end(),sortbyPriceAsc);
-                        toErase(m, IOsell [m.instrumentId], IS [m.instrumentId].bap, IS [m.instrumentId].taq, OS [m.serverOrderId].side);
+                        toErase(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity, OS [m.serverOrderId].side);
                 }
 
                 OS.erase (m.serverOrderId);
@@ -172,15 +185,11 @@ struct StatsObserver : public MsgObserver
 
                                 }
                                 else p = 0;
-                                if(side == Side::Buy) s.bidPrice = p;
-                                else s.askPrice = p;
+
                         }
                         vec.erase(vec.begin());
 
-                        if(side == Side::Buy) s.bidQuantity = q;
-                        else s.askQuantity = q;
-
-                        enc.send(s);
+                        enc.send(IS [m.instrumentId]);
                 }
                 else {
                         for (unsigned i = 0; i < vec.size(); i++) {
@@ -203,23 +212,6 @@ struct StatsObserver : public MsgObserver
         {
 
         }
-
-
-        bool trace;
-
-        typedef std::map<u32, std::string> Instruments;
-        Instruments instruments;
-        typedef std::map<u32, InstrumentStats> InStats;
-        InStats IS;
-        typedef std::map<u64, Public::OrderInserted> Orders;
-        Orders OS;
-        typedef std::map<u32, std::vector<Public::OrderInserted> > InstrumentOrders;
-        InstrumentOrders IObuy;
-        InstrumentOrders IOsell;
-        Public::TopOfBook s;
-
-
-        Encoder enc;
 
 
 
