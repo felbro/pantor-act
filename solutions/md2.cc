@@ -213,13 +213,37 @@ struct StatsObserver : public MsgObserver
 
 
         void onOrderReplaced (const Public::OrderReplaced & m ) override {
+
         }
 
 
 
-        void
-        onOrderExecuted (const Public::OrderExecuted & m) override
-        {
+        void onOrderExecuted (const Public::OrderExecuted & m) override {
+                // error messages
+                const auto it = OS.find (m.serverOrderId);
+                if (it == OS.end ())
+                {
+                        std::cerr << "Error: Unknown order: " << m.toString() << std::endl;
+                        abort ();
+                }
+                if (OS[m.serverOrderId].instrumentId != m.instrumentId) {
+                        std::cerr << "Error: Instrument Info for given order does not correspond with message Instrument Info: " <<
+                        m.toString() << std::endl;
+                        std::cerr << OS[m.serverOrderId].instrumentId << " != " << m.instrumentId << std::endl;
+                        abort();
+                }
+                if (OS[m.serverOrderId].price != m.price) {
+                        std::cerr << "Error: The excecuted price does not equal the order price: " << m.toString() << std::endl;
+                        std::cerr << OS[m.serverOrderId].price << " != "<< m.price << std::endl;
+                        abort();
+                }
+                if (OS[m.serverOrderId].quantity < m.quantity) {
+                        std::cerr << "Error: The excecuted quantity exceeds the order quantity: " << m.toString() << std::endl;
+                        std::cerr << OS[m.serverOrderId].quantity << " < "<< m.quantity << std::endl;
+                        abort();
+                }
+
+
 
         }
 
