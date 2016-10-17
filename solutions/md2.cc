@@ -119,13 +119,15 @@ struct StatsObserver : public MsgObserver
                 if (func(p,m.price) || vec.empty()) {
                         p = m.price;
                         q = m.quantity;
-
+                        enc.send (IS [m.instrumentId]);
                 }
-                else if (p == m.price )
+                else if (p == m.price ) {
                         q += m.quantity;
+                        enc.send (IS [m.instrumentId]);
+                }
 
                 vec.push_back(m.serverOrderId);
-                enc.send (IS [m.instrumentId]);
+
         }
 
 
@@ -193,10 +195,15 @@ struct StatsObserver : public MsgObserver
 
         void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
                 if(vec.size() > 1) {
-
-                        p = OS[vec[1]].price;
-                        u64 tmp = 0;
                         unsigned int i = 1;
+                        while(1) {
+                                if (OS[vec[i]].quantity != 0) {
+                                        p = OS[vec[i]].price;
+                                        break;
+                                }
+                        }
+                        u64 tmp = 0;
+                        i = 1;
 
                         while(OS[vec[i]].price == p && i < vec.size()) {
                                 tmp += OS[vec[i]].quantity;
@@ -305,41 +312,56 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].side == Side::Buy) {
 
                         sort(IObuy [m.instrumentId].begin(),IObuy [m.instrumentId].end(),sortbyPriceDesc);
-                        toReplace(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity,lesser);
+                        toReplace(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity,greater);
                 }
-                /*   else{
+                else{
                         sort(IOsell [m.instrumentId].begin(),IOsell [m.instrumentId].end(),sortbyPriceAsc);
-                        toExecute(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity);
-                   }*/
+                        toReplace(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity,lesser);
+                }
                 OS.erase(m.serverOrderId);
 
         }
 
-        void toReplace(Public::OrderReplaced m, std::vector<u64> & vec, u64 & p, u64 & q,std::function<bool (u64,u64)> func){
+        void toReplace(Public::OrderReplaced m, std::vector<u64> & vec, u64 & p, u64 & q,std::function<bool (u64,u64)> better){
 
-                if (func(p,m.price)) {
+                vec.push_back(m.newServerOrderId);
+                if (better(m.price,p)) {
                         p = m.price;
                         q = m.quantity;
-                        for (unsigned i = 0; i < vec.size(); i++) {
-                                if (OS[vec[i]].serverOrderId == m.serverOrderId) {
-                                        vec.erase(vec.begin()+i);
-                                        break;
-                                }
-                        }
-
+                        enc.send(IS [m.instrumentId]);
                 }
 
                 else if (m.price == p) {
-                        q -= OS[m.serverOrderId].quantity;
+
+                        if ( p == OS[m.serverOrderId].price) q -= OS[m.serverOrderId].quantity;
                         q += m.quantity;
 
                         if(q == 0) decreaseAndReplace(vec,p,q);
-                        vec.erase(vec.begin());
-
-                        enc.send(IS [m.instrumentId]);
+                        if(OS[m.serverOrderId].price != m.price || OS[m.serverOrderId].quantity != m.quantity)
+                                enc.send(IS [m.instrumentId]);
                 }
-//HÖR MÅSTE NGT GÖRAS
-                vec.push_back(m.newServerOrderId);
+
+                else {
+
+                        if (p == OS[m.serverOrderId].price) {
+
+                                q -= OS[m.serverOrderId].quantity;
+
+                                if(q == 0) decreaseAndReplace(vec,p,q);
+
+
+                                enc.send(IS [m.instrumentId]);
+                        }
+                }
+
+                for (unsigned i = 0; i < vec.size(); i++) {
+                        if (OS[vec[i]].serverOrderId == m.serverOrderId) {
+                                vec.erase(vec.begin()+i);
+                                break;
+                        }
+                }
+
+
         }
 
 
