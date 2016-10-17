@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/md2.dir/md2.cc.o  -o md2 -rdynamic ../core/libempcore.a 

@@ -1,0 +1,17 @@
+1|0|0|1
+# Initialize order book
+2|0|0|101|ERIC B
+3|0|0|101|0
+3|0|0|101|1
+# First order entered
+7|0|0|101|10001|60.75|1000|0
+7|0|0|101|10002|61.50|200|1
+# Inserted order is not best price
+7|0|0|101|10003|61.55|1500|1
+7|0|0|101|10004|61.50|600|1
+# Order 10002 deleted
+8|0|0|101|10002
+# Order 10001 partially filled
+11|1|0|101|10001|60.75|500
+# Order 10004 replaced price
+10|0|0|101|10004|10005|61.55|600

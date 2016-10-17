@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/dump.dir/dump.cc.o  -o dump -rdynamic ../core/libempcore.a 

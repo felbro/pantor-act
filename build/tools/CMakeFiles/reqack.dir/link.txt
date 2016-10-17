@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/reqack.dir/reqack.cc.o  -o reqack -rdynamic ../core/libempcore.a 

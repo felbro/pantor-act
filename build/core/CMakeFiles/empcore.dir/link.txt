@@ -1,0 +1,2 @@
+/usr/bin/ar qc libempcore.a  CMakeFiles/empcore.dir/Dec.cc.o CMakeFiles/empcore.dir/Enc.cc.o CMakeFiles/empcore.dir/Parser.cc.o CMakeFiles/empcore.dir/Msgs.cc.o
+/usr/bin/ranlib libempcore.a
