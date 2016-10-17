@@ -12,41 +12,22 @@
 using namespace ACT;
 
 
-struct InstrumentStats
-{
-        u64 bbp = 0;
-        u64 tbq = 0;
-        u64 bap = 0;
-        u64 taq = 0;
-
-
-};
-
-/*struct OrdersByInstrument {
-        std::vector<Public::OrderDeleted> a;
-   };*/
-
-
 
 struct StatsObserver : public MsgObserver
 {
         bool trace;
         // instrumentId mapped to name
-        typedef std::map<u32, std::string> Instruments;
-        Instruments instruments;
+        std::map<u32, std::string> instruments;
 
         //InstrumentId mapped to corresponding TOB
-        typedef std::map<u32, Public::TopOfBook> InStats;
-        InStats IS;
+        std::map<u32, Public::TopOfBook> IS;
 
         // serverOrderId mapped order
-        typedef std::map<u64, Public::OrderInserted> Orders;
-        Orders OS;
+        std::map<u64, Public::OrderInserted> OS;
         // instrumentId mapped to all orders.
         typedef std::map<u32, std::vector<u64> > InstrumentOrders;
         InstrumentOrders IObuy;
         InstrumentOrders IOsell;
-
 
         Encoder enc;
 
@@ -72,7 +53,7 @@ struct StatsObserver : public MsgObserver
         onSystemStatus (const Public::SystemStatus & m) override
         {
                 if (!m.open) {
-                        std::cerr << "Lawl error" << std::endl;
+                        std::cerr << "The system needs to be opened: " << m.toString()<<std::endl;
                 }
 
                 else
@@ -407,7 +388,7 @@ struct StatsObserver : public MsgObserver
 static void
 usage (const char* cmd)
 {
-        std::cerr << "usage: " << cmd << " b | t" << std::endl;
+        std::cerr << "usage: " << cmd << " (b | t) (b | t)" << std::endl;
         std::cerr << "  b (binary input)" << std::endl;
         std::cerr << "  t (text input)" << std::endl;
         exit (0);
@@ -418,8 +399,13 @@ main (int ac, char** av)
 {
         StatsObserver s;
 
-        if (ac != 2)
+
+        if (ac != 3)
                 usage (av [0]);
+
+        if (*av [2] == 'b') {
+                s.setBinaryOutput();
+        }
 
         if (*av [1] == 't')
         {
@@ -433,6 +419,7 @@ main (int ac, char** av)
                 BinDecoder d (s);
                 d.run ();
         }
+
         else
                 usage (av [0]);
 
