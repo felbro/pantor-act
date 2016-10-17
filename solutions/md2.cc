@@ -1,7 +1,11 @@
-//
-// Solution to task md1: Trade Stats
-//
+/*
+   Solution to MD2: Top of Book.
 
+   Inspiration taken from md1.cc (mainly the main-function)
+
+   @author Felix Broberg
+   @version 2016-10-17
+ */
 #include "Dec.h"
 #include "Enc.h"
 #include <map>
@@ -288,7 +292,7 @@ struct StatsObserver : public MsgObserver
                 OS[m.newServerOrderId] = OS[m.serverOrderId];
                 OS[m.newServerOrderId].price = m.price;
                 OS[m.newServerOrderId].quantity = m.quantity;
-//                IS[m.instrumentId] = m.newServerOrderId;
+
 
                 if (OS [m.serverOrderId].side == Side::Buy) {
 
