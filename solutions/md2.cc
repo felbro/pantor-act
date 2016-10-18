@@ -180,16 +180,17 @@ struct StatsObserver : public MsgObserver
 
         void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
                 if(vec.size() > 1) {
-                        unsigned int i = 1;
+                        unsigned int i = 0;
                         while(1) {
-                                if (OS[vec[i]].quantity != 0) {
+                                i++;
+                                if (OS[vec[i]].quantity != 0 && i < vec.size()) {
                                         p = OS[vec[i]].price;
                                         break;
                                 }
-                                i++;
+
                         }
                         u64 tmp = 0;
-                        i = 1;
+                        //i = 1;
 
                         while(OS[vec[i]].price == p && i < vec.size()) {
                                 tmp += OS[vec[i]].quantity;
