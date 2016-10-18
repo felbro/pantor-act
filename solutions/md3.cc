@@ -9,7 +9,6 @@
 #include "Dec.h"
 #include "Enc.h"
 #include <map>
-#include <unordered_set>
 #include <algorithm>
 #include <vector>
 #include <functional>
@@ -21,9 +20,10 @@ using namespace ACT;
 struct StatsObserver : public MsgObserver
 {
         bool trace;
+
+        static const u64 cutoffprice = 1000000000;
         // instrumentId mapped to name
-        //std::map<u32, std::string> instruments;
-        std::unordered_set<u32> instruments;
+        std::map<u32, std::string> instruments;
 
         //InstrumentId mapped to corresponding TOB
         std::map<u32, Public::TopOfBook> IS;
@@ -76,8 +76,7 @@ struct StatsObserver : public MsgObserver
         void
         onInstrumentInfo (const Public::InstrumentInfo & m) override
         {
-
-                instruments.insert(m.instrumentId);
+                instruments [m.instrumentId] = m.name;
 
                 Public::TopOfBook s;
                 IS [m.instrumentId] = s;
@@ -94,20 +93,41 @@ struct StatsObserver : public MsgObserver
                         orderError(m);
                         abort ();
                 }
+                auto sortbyPriceDesc = [&](const u64 lhs,const u64 rhs)->bool {
+
+                        return OS[lhs].price > OS[rhs].price;
+                };
+
+                auto sortbyPriceAsc = [&](const u64 lhs,const u64 rhs)->bool {
+
+                        return OS[lhs].price < OS[rhs].price;
+                };
+
 
                 OS [m.serverOrderId] = m;
 
-                if(m.side == Side::Buy)
+                if(m.side == Side::Buy) {
+                        sort(IObuy [m.instrumentId].begin(),IObuy [m.instrumentId].end(),sortbyPriceDesc);
                         onInserted(m, IObuy [m.instrumentId], IS [m.instrumentId].bidPrice, IS [m.instrumentId].bidQuantity,lesser);
+                }
 
                 else
+                {
+                        sort(IOsell [m.instrumentId].begin(),IOsell [m.instrumentId].end(),sortbyPriceAsc);
                         onInserted(m, IOsell [m.instrumentId], IS [m.instrumentId].askPrice, IS [m.instrumentId].askQuantity,greater);
+                }
         }
         void onInserted(Public::OrderInserted m, std::vector<u64> & vec, u64 & p, u64 & q,std::function<bool (u64,u64)> func){
                 if (func(p,m.price) || p == 0 || q == 0) {
-                        p = m.price;
-                        q = m.quantity;
-                        enc.send (IS [m.instrumentId]);
+
+                        u64 tempq = quantityAtPrice(vec, m.price) + m.quantity;
+
+                        if(m.price*tempq >= cutoffprice) {
+
+                                p = m.price;
+                                q = tempq;
+                                enc.send(IS[m.instrumentId]);
+                        }
                 }
                 else if (p == m.price ) {
                         q += m.quantity;
@@ -116,6 +136,26 @@ struct StatsObserver : public MsgObserver
 
                 vec.push_back(m.serverOrderId);
 
+        }
+
+        u64 quantityAtPrice(std::vector<u64> & vec, u64 price){
+                u64 quantity = 0;
+                bool found = false;
+                unsigned int i = 0;
+                while(i < vec.size()) {
+                        if(price == OS[vec[i]].price) {
+                                found = true;
+                                break;
+                        }
+                        i++;
+                }
+                if (found) {
+                        while(OS[vec[i]].price == price && i < vec.size()) {
+                                quantity += OS[vec[i]].quantity;
+                                i++;
+                        }
+                }
+                return quantity;
         }
 
 

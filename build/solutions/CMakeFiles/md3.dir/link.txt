@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/md3.dir/md3.cc.o  -o md3 -rdynamic ../core/libempcore.a 
