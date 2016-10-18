@@ -186,6 +186,7 @@ struct StatsObserver : public MsgObserver
                                         p = OS[vec[i]].price;
                                         break;
                                 }
+                                i++;
                         }
                         u64 tmp = 0;
                         i = 1;
