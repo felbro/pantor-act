@@ -207,24 +207,24 @@ struct StatsObserver : public MsgObserver
                         q -= OS [m.serverOrderId].quantity;
 
                         if(p*q < cutoffprice) decreaseAndReplace(vec,p,q);
-                        vec.erase(vec.begin());
+
 
                         enc.send(IS [m.instrumentId]);
                 }
-                else {
-                        for (unsigned i = 0; i < vec.size(); i++) {
-                                if (OS[vec[i]].serverOrderId == m.serverOrderId) {
-                                        vec.erase(vec.begin()+i);
-                                        break;
-                                }
+
+                for (unsigned int i = 0; i < vec.size(); i++) {
+                        if (OS[vec[i]].serverOrderId == m.serverOrderId) {
+                                vec.erase(vec.begin()+i);
+                                break;
                         }
                 }
+
         }
 
         void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
 
                 if(vec.size() > 1) {
-                        unsigned int i = 1;
+                        unsigned int i = 0;
                         u64 tempq = 0;
                         u64 tempp = 0;
                         while(i < vec.size() ) {
@@ -244,6 +244,7 @@ struct StatsObserver : public MsgObserver
 
 
                                 }
+                                tempq = 0;
                                 i++;
                         }
                 }
@@ -312,11 +313,15 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
-                        u64 tempq = q;
                         if(p*q < cutoffprice) decreaseAndReplace(vec,p,q);
-                        if(tempq == 0) {
-                                std::cout << "here" << std::endl;
-                                vec.erase(vec.begin());
+                        if(OS[m.serverOrderId].quantity == 0) {
+                                for (unsigned int i = 0; i < vec.size(); i++) {
+                                        if (OS[vec[i]].serverOrderId == m.serverOrderId) {
+                                                vec.erase(vec.begin()+i);
+                                                break;
+                                        }
+                                }
+
                         }
                         enc.send(IS [m.instrumentId]);
                 }
@@ -398,7 +403,7 @@ struct StatsObserver : public MsgObserver
                         }
                 }
 
-                for (unsigned i = 0; i < vec.size(); i++) {
+                for (unsigned int i = 0; i < vec.size(); i++) {
                         if (OS[vec[i]].serverOrderId == m.serverOrderId) {
                                 vec.erase(vec.begin()+i);
                                 break;
