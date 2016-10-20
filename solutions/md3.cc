@@ -206,7 +206,7 @@ struct StatsObserver : public MsgObserver
 
                         q -= OS [m.serverOrderId].quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
+                        if(p*q < cutoffprice) decreaseAndReplace(vec,p,q);
                         vec.erase(vec.begin());
 
                         enc.send(IS [m.instrumentId]);
@@ -222,51 +222,36 @@ struct StatsObserver : public MsgObserver
         }
 
         void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
-                //u64 tempq = quantityAtPrice(vec, m.price) + m.quantity;
-
-//                u64 quantity = 0;
-//                bool found = false;
-//                unsigned int i = 0;
-//                while(i < vec.size()) {
-//                        if(price == OS[vec[i]].price) {
-//                                found = true;
-//                                break;
-//                        }
-//                        i++;
-//                }
-//                if (found) {
-//                        while(OS[vec[i]].price == price && i < vec.size()) {
-//                                quantity += OS[vec[i]].quantity;
-//                                i++;
-//                        }
-//                }
-//                return quantity;
-
-
-
-
 
                 if(vec.size() > 1) {
                         unsigned int i = 1;
-                        u64 tmpq = 0;
-                        u64 tmpp = 0;
+                        u64 tempq = 0;
+                        u64 tempp = 0;
                         while(i < vec.size() ) {
 
                                 if (OS[vec[i]].quantity != 0 && i < vec.size()) {
-                                        p = OS[vec[i]].price;
-                                        break;
+                                        tempp = OS[vec[i]].price;
+                                        while(OS[vec[i]].price == tempp && i < vec.size()) {
+                                                tempq += OS[vec[i]].quantity;
+                                                i++;
+                                        }
+
+                                        if(tempp * tempq >= cutoffprice) {
+                                                p = tempp;
+                                                q = tempq;
+                                                return;
+                                        }
+
+
                                 }
-                                while(OS[vec[i]].price == p && i < vec.size()) {
-                                        tmp += OS[vec[i]].quantity;
-                                        i++;
-                                }
+                                i++;
                         }
-
-
-                        q = tmp;
-
                 }
-                else p = 0;
+                else
+                {
+                        p = 0;
+                        q = 0;
+                }
         }
 
 
@@ -327,11 +312,12 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
-                        if(q == 0) {
-                                decreaseAndReplace(vec,p,q);
+                        u64 tempq = q;
+                        if(p*q < cutoffprice) decreaseAndReplace(vec,p,q);
+                        if(tempq == 0) {
+                                std::cout << "here" << std::endl;
                                 vec.erase(vec.begin());
                         }
-
                         enc.send(IS [m.instrumentId]);
                 }
         }
@@ -394,7 +380,7 @@ struct StatsObserver : public MsgObserver
                         if ( p == OS[m.serverOrderId].price) q -= OS[m.serverOrderId].quantity;
                         q += m.quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
+                        if(q*p < cutoffprice) decreaseAndReplace(vec,p,q);
                         if(OS[m.serverOrderId].price != m.price || OS[m.serverOrderId].quantity != m.quantity)
                                 enc.send(IS [m.instrumentId]);
                 }
@@ -405,7 +391,7 @@ struct StatsObserver : public MsgObserver
 
                                 q -= OS[m.serverOrderId].quantity;
 
-                                if(q == 0) decreaseAndReplace(vec,p,q);
+                                if(q*p < cutoffprice) decreaseAndReplace(vec,p,q);
 
 
                                 enc.send(IS [m.instrumentId]);
