@@ -209,6 +209,7 @@ struct StatsObserver : public MsgObserver
                         if(p*q < cutoffprice) decreaseAndReplace(m.serverOrderId,vec,p,q);
 
 
+
                         enc.send(IS [m.instrumentId]);
                 }
 
@@ -224,6 +225,7 @@ struct StatsObserver : public MsgObserver
         void decreaseAndReplace(u64 id, std::vector<u64> & vec, u64 & p, u64 & q){
 
                 if(vec.size() > 1) {
+
                         unsigned int i = 0;
                         u64 tempq = 0;
                         u64 tempp = 0;
@@ -231,8 +233,8 @@ struct StatsObserver : public MsgObserver
 
                                 if (OS[vec[i]].quantity != 0 && i < vec.size() && OS[vec[i]].serverOrderId != id) {
                                         tempp = OS[vec[i]].price;
-                                        while(OS[vec[i]].price == tempp && i < vec.size() ) {
-                                                tempq += OS[vec[i]].quantity;
+                                        while(OS[vec[i]].price == tempp && i < vec.size()) {
+                                                if (OS[vec[i]].serverOrderId != id) tempq += OS[vec[i]].quantity;
                                                 i++;
                                         }
 
@@ -244,16 +246,14 @@ struct StatsObserver : public MsgObserver
 
 
                                 }
-                                p = 0;
                                 tempq = 0;
                                 i++;
                         }
+
                 }
-                else
-                {
-                        p = 0;
-                        q = 0;
-                }
+
+                p = 0;
+                q = 0;
         }
 
 
@@ -398,7 +398,7 @@ struct StatsObserver : public MsgObserver
                                 q -= OS[m.serverOrderId].quantity;
 
                                 if(q*p < cutoffprice) decreaseAndReplace(m.serverOrderId,vec,p,q);
-
+                                if (p == m.price || p == 0) q += m.quantity;
 
                                 enc.send(IS [m.instrumentId]);
                         }

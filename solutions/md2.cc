@@ -190,6 +190,7 @@ struct StatsObserver : public MsgObserver
 
         void decreaseAndReplace(u64 id, std::vector<u64> & vec, u64 & p, u64 & q){
                 if(vec.size() > 1) {
+
                         unsigned int i = 0;
                         u64 tempq = 0;
                         u64 tempp = 0;
@@ -197,7 +198,7 @@ struct StatsObserver : public MsgObserver
 
                                 if (OS[vec[i]].quantity != 0 && i < vec.size() && OS[vec[i]].serverOrderId != id) {
                                         tempp = OS[vec[i]].price;
-                                        while(OS[vec[i]].price == tempp && i < vec.size() ) {
+                                        while(OS[vec[i]].price == tempp && i < vec.size()) {
                                                 tempq += OS[vec[i]].quantity;
                                                 i++;
                                         }
@@ -210,45 +211,14 @@ struct StatsObserver : public MsgObserver
 
 
                                 }
-                                p = 0;
                                 tempq = 0;
                                 i++;
                         }
-                }
-                else
-                {
-                        p = 0;
-                        q = 0;
-                }
-
-
-
-
-
-/*
-                if(vec.size() > 1) {
-                        unsigned int i = 0;
-                        while(i < vec.size()) {
-
-                                if (OS[vec[i]].quantity != 0 && i < vec.size() && OS[vec[i]].serverOrderId != id) {
-                                        p = OS[vec[i]].price;
-                                        break;
-                                }
-                                i++;
-
-                        }
-                        u64 tmp = 0;
-                        //i = 1;
-
-                        while(OS[vec[i]].price == p && i < vec.size()) {
-                                tmp += OS[vec[i]].quantity;
-                                i++;
-                        }
-                        q = tmp;
-                        if(q == 0)
 
                 }
-                else p = 0;*/
+
+                p = 0;
+                q = 0;
         }
 
 
