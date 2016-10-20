@@ -95,6 +95,7 @@ struct StatsObserver : public MsgObserver
                         abort ();
                 }
 
+
                 OS [m.serverOrderId] = m;
 
                 if(m.side == Side::Buy)
@@ -128,6 +129,8 @@ struct StatsObserver : public MsgObserver
                         std::cerr << "Error: Unknown order: " << m.toString() << std::endl;
                         abort ();
                 }
+
+
                 if (OS[m.serverOrderId].instrumentId != m.instrumentId) {
                         std::cerr << "Error: Instrument Info for given order does not correspond with message Instrument Info: " <<
                         m.toString() << std::endl;
@@ -261,8 +264,10 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
-                        vec.erase(vec.begin());
+                        if(q == 0) {
+                                decreaseAndReplace(vec,p,q);
+                                vec.erase(vec.begin());
+                        }
 
                         enc.send(IS [m.instrumentId]);
                 }

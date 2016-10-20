@@ -222,6 +222,8 @@ struct StatsObserver : public MsgObserver
         }
 
         void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
+                //u64 tempq = quantityAtPrice(vec, m.price) + m.quantity;
+
                 if(vec.size() > 1) {
                         unsigned int i = 0;
                         while(1) {
@@ -248,6 +250,7 @@ struct StatsObserver : public MsgObserver
 
         void onOrderExecuted (const Public::OrderExecuted & m) override {
                 // error messages
+
                 const auto it = OS.find (m.serverOrderId);
                 if (it == OS.end ())
                 {
@@ -298,6 +301,7 @@ struct StatsObserver : public MsgObserver
         }
 
         void toExecute(Public::OrderExecuted m, std::vector<u64> & vec, u64 & p, u64 & q){
+
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
