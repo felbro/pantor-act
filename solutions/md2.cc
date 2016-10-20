@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <vector>
 #include <functional>
+#include <stdlib.h>
 
 using namespace ACT;
 
@@ -165,11 +166,12 @@ struct StatsObserver : public MsgObserver
         }
 
         void toErase(Public::OrderDeleted m, std::vector<u64> & vec, u64 & p, u64 & q){
+
                 if (OS [m.serverOrderId].price == p) {
 
                         q -= OS [m.serverOrderId].quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
+                        if(q == 0) decreaseAndReplace(m.serverOrderId,vec,p,q);
 
 
                         enc.send(IS [m.instrumentId]);
@@ -177,22 +179,62 @@ struct StatsObserver : public MsgObserver
 
                 for (unsigned int i = 0; i < vec.size(); i++) {
                         if (OS[vec[i]].serverOrderId == m.serverOrderId) {
+
                                 vec.erase(vec.begin()+i);
+
                                 break;
                         }
                 }
 
         }
 
-        void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
+        void decreaseAndReplace(u64 id, std::vector<u64> & vec, u64 & p, u64 & q){
+                if(vec.size() > 1) {
+                        unsigned int i = 0;
+                        u64 tempq = 0;
+                        u64 tempp = 0;
+                        while(i < vec.size() ) {
+
+                                if (OS[vec[i]].quantity != 0 && i < vec.size() && OS[vec[i]].serverOrderId != id) {
+                                        tempp = OS[vec[i]].price;
+                                        while(OS[vec[i]].price == tempp && i < vec.size() ) {
+                                                tempq += OS[vec[i]].quantity;
+                                                i++;
+                                        }
+
+                                        if(tempq > 0) {
+                                                p = tempp;
+                                                q = tempq;
+                                                return;
+                                        }
+
+
+                                }
+                                p = 0;
+                                tempq = 0;
+                                i++;
+                        }
+                }
+                else
+                {
+                        p = 0;
+                        q = 0;
+                }
+
+
+
+
+
+/*
                 if(vec.size() > 1) {
                         unsigned int i = 0;
                         while(i < vec.size()) {
-                                i++;
-                                if (OS[vec[i]].quantity != 0 && i < vec.size()) {
+
+                                if (OS[vec[i]].quantity != 0 && i < vec.size() && OS[vec[i]].serverOrderId != id) {
                                         p = OS[vec[i]].price;
                                         break;
                                 }
+                                i++;
 
                         }
                         u64 tmp = 0;
@@ -203,9 +245,10 @@ struct StatsObserver : public MsgObserver
                                 i++;
                         }
                         q = tmp;
+                        if(q == 0)
 
                 }
-                else p = 0;
+                else p = 0;*/
         }
 
 
@@ -264,7 +307,7 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
+                        if(q == 0) decreaseAndReplace(m.serverOrderId,vec,p,q);
                         if(OS[m.serverOrderId].quantity == 0) {
                                 for (unsigned int i = 0; i < vec.size(); i++) {
                                         if (OS[vec[i]].serverOrderId == m.serverOrderId) {
@@ -280,6 +323,7 @@ struct StatsObserver : public MsgObserver
 
 
         void onOrderReplaced (const Public::OrderReplaced & m ) override {
+
                 // error messages
                 const auto it = OS.find (m.serverOrderId);
                 if (it == OS.end ())
@@ -320,6 +364,7 @@ struct StatsObserver : public MsgObserver
                 }
                 OS.erase(m.serverOrderId);
 
+
         }
 
         void toReplace(Public::OrderReplaced m, std::vector<u64> & vec, u64 & p, u64 & q,std::function<bool (u64,u64)> better){
@@ -336,7 +381,7 @@ struct StatsObserver : public MsgObserver
                         if ( p == OS[m.serverOrderId].price) q -= OS[m.serverOrderId].quantity;
                         q += m.quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
+                        if(q == 0) decreaseAndReplace(m.serverOrderId,vec,p,q);
                         if(OS[m.serverOrderId].price != m.price || OS[m.serverOrderId].quantity != m.quantity)
                                 enc.send(IS [m.instrumentId]);
                 }
@@ -347,7 +392,7 @@ struct StatsObserver : public MsgObserver
 
                                 q -= OS[m.serverOrderId].quantity;
 
-                                if(q == 0) decreaseAndReplace(vec,p,q);
+                                if(q == 0) decreaseAndReplace(m.serverOrderId,vec,p,q);
 
 
                                 enc.send(IS [m.instrumentId]);

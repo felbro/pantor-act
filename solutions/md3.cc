@@ -206,7 +206,7 @@ struct StatsObserver : public MsgObserver
 
                         q -= OS [m.serverOrderId].quantity;
 
-                        if(p*q < cutoffprice) decreaseAndReplace(vec,p,q);
+                        if(p*q < cutoffprice) decreaseAndReplace(m.serverOrderId,vec,p,q);
 
 
                         enc.send(IS [m.instrumentId]);
@@ -221,7 +221,7 @@ struct StatsObserver : public MsgObserver
 
         }
 
-        void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
+        void decreaseAndReplace(u64 id, std::vector<u64> & vec, u64 & p, u64 & q){
 
                 if(vec.size() > 1) {
                         unsigned int i = 0;
@@ -229,9 +229,9 @@ struct StatsObserver : public MsgObserver
                         u64 tempp = 0;
                         while(i < vec.size() ) {
 
-                                if (OS[vec[i]].quantity != 0 && i < vec.size()) {
+                                if (OS[vec[i]].quantity != 0 && i < vec.size() && OS[vec[i]].serverOrderId != id) {
                                         tempp = OS[vec[i]].price;
-                                        while(OS[vec[i]].price == tempp && i < vec.size()) {
+                                        while(OS[vec[i]].price == tempp && i < vec.size() ) {
                                                 tempq += OS[vec[i]].quantity;
                                                 i++;
                                         }
@@ -244,6 +244,7 @@ struct StatsObserver : public MsgObserver
 
 
                                 }
+                                p = 0;
                                 tempq = 0;
                                 i++;
                         }
@@ -313,7 +314,7 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
-                        if(p*q < cutoffprice) decreaseAndReplace(vec,p,q);
+                        if(p*q < cutoffprice) decreaseAndReplace(m.serverOrderId,vec,p,q);
                         if(OS[m.serverOrderId].quantity == 0) {
                                 for (unsigned int i = 0; i < vec.size(); i++) {
                                         if (OS[vec[i]].serverOrderId == m.serverOrderId) {
@@ -385,7 +386,7 @@ struct StatsObserver : public MsgObserver
                         if ( p == OS[m.serverOrderId].price) q -= OS[m.serverOrderId].quantity;
                         q += m.quantity;
 
-                        if(q*p < cutoffprice) decreaseAndReplace(vec,p,q);
+                        if(q*p < cutoffprice) decreaseAndReplace(m.serverOrderId,vec,p,q);
                         if(OS[m.serverOrderId].price != m.price || OS[m.serverOrderId].quantity != m.quantity)
                                 enc.send(IS [m.instrumentId]);
                 }
@@ -396,7 +397,7 @@ struct StatsObserver : public MsgObserver
 
                                 q -= OS[m.serverOrderId].quantity;
 
-                                if(q*p < cutoffprice) decreaseAndReplace(vec,p,q);
+                                if(q*p < cutoffprice) decreaseAndReplace(m.serverOrderId,vec,p,q);
 
 
                                 enc.send(IS [m.instrumentId]);
