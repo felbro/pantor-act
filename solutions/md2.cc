@@ -170,22 +170,24 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
 
                         q -= OS [m.serverOrderId].quantity;
-
+                        removeItem(m.serverOrderId,vec);
                         if(q == 0) decreaseAndReplace(m.serverOrderId,vec,p,q);
 
 
                         enc.send(IS [m.instrumentId]);
                 }
+                else {
+                        removeItem(m.serverOrderId,vec);
+                }
 
+        }
+        void removeItem(u64 id, std::vector<u64> & vec) {
                 for (unsigned int i = 0; i < vec.size(); i++) {
-                        if (OS[vec[i]].serverOrderId == m.serverOrderId) {
-
+                        if (OS[vec[i]].serverOrderId == id) {
                                 vec.erase(vec.begin()+i);
-
                                 break;
                         }
                 }
-
         }
 
         void decreaseAndReplace(u64 id, std::vector<u64> & vec, u64 & p, u64 & q){
@@ -279,12 +281,7 @@ struct StatsObserver : public MsgObserver
 
                         if(q == 0) decreaseAndReplace(m.serverOrderId,vec,p,q);
                         if(OS[m.serverOrderId].quantity == 0) {
-                                for (unsigned int i = 0; i < vec.size(); i++) {
-                                        if (OS[vec[i]].serverOrderId == m.serverOrderId) {
-                                                vec.erase(vec.begin()+i);
-                                                break;
-                                        }
-                                }
+                                removeItem(m.serverOrderId,vec);
 
                         }
                         enc.send(IS [m.instrumentId]);
@@ -369,12 +366,7 @@ struct StatsObserver : public MsgObserver
                         }
                 }
 
-                for (unsigned int i = 0; i < vec.size(); i++) {
-                        if (OS[vec[i]].serverOrderId == m.serverOrderId) {
-                                vec.erase(vec.begin()+i);
-                                break;
-                        }
-                }
+                removeItem(m.serverOrderId,vec);
 
 
         }
