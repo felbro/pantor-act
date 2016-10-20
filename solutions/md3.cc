@@ -224,23 +224,45 @@ struct StatsObserver : public MsgObserver
         void decreaseAndReplace(std::vector<u64> & vec, u64 & p, u64 & q){
                 //u64 tempq = quantityAtPrice(vec, m.price) + m.quantity;
 
+//                u64 quantity = 0;
+//                bool found = false;
+//                unsigned int i = 0;
+//                while(i < vec.size()) {
+//                        if(price == OS[vec[i]].price) {
+//                                found = true;
+//                                break;
+//                        }
+//                        i++;
+//                }
+//                if (found) {
+//                        while(OS[vec[i]].price == price && i < vec.size()) {
+//                                quantity += OS[vec[i]].quantity;
+//                                i++;
+//                        }
+//                }
+//                return quantity;
+
+
+
+
+
                 if(vec.size() > 1) {
-                        unsigned int i = 0;
-                        while(1) {
-                                i++;
+                        unsigned int i = 1;
+                        u64 tmpq = 0;
+                        u64 tmpp = 0;
+                        while(i < vec.size() ) {
+
                                 if (OS[vec[i]].quantity != 0 && i < vec.size()) {
                                         p = OS[vec[i]].price;
                                         break;
                                 }
-
+                                while(OS[vec[i]].price == p && i < vec.size()) {
+                                        tmp += OS[vec[i]].quantity;
+                                        i++;
+                                }
                         }
-                        u64 tmp = 0;
-                        //i = 1;
 
-                        while(OS[vec[i]].price == p && i < vec.size()) {
-                                tmp += OS[vec[i]].quantity;
-                                i++;
-                        }
+
                         q = tmp;
 
                 }
@@ -305,8 +327,10 @@ struct StatsObserver : public MsgObserver
                 if (OS [m.serverOrderId].price == p) {
                         q -= m.quantity;
 
-                        if(q == 0) decreaseAndReplace(vec,p,q);
-                        vec.erase(vec.begin());
+                        if(q == 0) {
+                                decreaseAndReplace(vec,p,q);
+                                vec.erase(vec.begin());
+                        }
 
                         enc.send(IS [m.instrumentId]);
                 }
