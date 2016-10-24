@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/or1.dir/or1.cc.o  -o or1 -rdynamic ../core/libempcore.a 

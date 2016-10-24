@@ -201,6 +201,19 @@ md3/fast:
 	$(MAKE) -f solutions/CMakeFiles/md3.dir/build.make solutions/CMakeFiles/md3.dir/build
 .PHONY : md3/fast
 
+#=============================================================================
+# Target rules for targets named or1
+
+# Build rule for target.
+or1: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 or1
+.PHONY : or1
+
+# fast build rule for target.
+or1/fast:
+	$(MAKE) -f solutions/CMakeFiles/or1.dir/build.make solutions/CMakeFiles/or1.dir/build
+.PHONY : or1/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -216,6 +229,7 @@ help:
 	@echo "... md1"
 	@echo "... md2"
 	@echo "... md3"
+	@echo "... or1"
 .PHONY : help
 
 

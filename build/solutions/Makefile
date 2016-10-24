@@ -155,6 +155,21 @@ md3/fast:
 	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f solutions/CMakeFiles/md3.dir/build.make solutions/CMakeFiles/md3.dir/build
 .PHONY : md3/fast
 
+# Convenience name for target.
+solutions/CMakeFiles/or1.dir/rule:
+	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f CMakeFiles/Makefile2 solutions/CMakeFiles/or1.dir/rule
+.PHONY : solutions/CMakeFiles/or1.dir/rule
+
+# Convenience name for target.
+or1: solutions/CMakeFiles/or1.dir/rule
+
+.PHONY : or1
+
+# fast build rule for target.
+or1/fast:
+	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f solutions/CMakeFiles/or1.dir/build.make solutions/CMakeFiles/or1.dir/build
+.PHONY : or1/fast
+
 md1.o: md1.cc.o
 
 .PHONY : md1.o
@@ -236,6 +251,33 @@ md3.cc.s:
 	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f solutions/CMakeFiles/md3.dir/build.make solutions/CMakeFiles/md3.dir/md3.cc.s
 .PHONY : md3.cc.s
 
+or1.o: or1.cc.o
+
+.PHONY : or1.o
+
+# target to build an object file
+or1.cc.o:
+	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f solutions/CMakeFiles/or1.dir/build.make solutions/CMakeFiles/or1.dir/or1.cc.o
+.PHONY : or1.cc.o
+
+or1.i: or1.cc.i
+
+.PHONY : or1.i
+
+# target to preprocess a source file
+or1.cc.i:
+	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f solutions/CMakeFiles/or1.dir/build.make solutions/CMakeFiles/or1.dir/or1.cc.i
+.PHONY : or1.cc.i
+
+or1.s: or1.cc.s
+
+.PHONY : or1.s
+
+# target to generate assembly for a file
+or1.cc.s:
+	cd /home/felix/Documents/github/other/pantor-act/build && $(MAKE) -f solutions/CMakeFiles/or1.dir/build.make solutions/CMakeFiles/or1.dir/or1.cc.s
+.PHONY : or1.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -243,10 +285,11 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... md1"
 	@echo "... rebuild_cache"
+	@echo "... md1"
 	@echo "... md2"
 	@echo "... md3"
+	@echo "... or1"
 	@echo "... md1.o"
 	@echo "... md1.i"
 	@echo "... md1.s"
@@ -256,6 +299,9 @@ help:
 	@echo "... md3.o"
 	@echo "... md3.i"
 	@echo "... md3.s"
+	@echo "... or1.o"
+	@echo "... or1.i"
+	@echo "... or1.s"
 .PHONY : help
 
 
