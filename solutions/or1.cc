@@ -9,6 +9,7 @@
 #include "Dec.h"
 #include "Enc.h"
 #include <map>
+#include <stdlib.h>
 #include <unordered_set>
 #include <algorithm>
 #include <vector>
@@ -25,6 +26,9 @@ struct StatsObserver : public MsgObserver
         std::map<u32, bool> instruments;
 
         std::map<u32, Public::TopOfBook> TOB;
+
+        std::unordered_set<u32> orders;
+
 
         Encoder enc;
 
@@ -43,12 +47,14 @@ struct StatsObserver : public MsgObserver
 
 
         void onInstrumentInfo (const Public::InstrumentInfo & m) override {
+
                 instruments[m.instrumentId] = 0;
         }
 
 
 
         void onInstrumentStatus (const Public::InstrumentStatus & m) override {
+
                 const auto iter = instruments.find (m.instrumentId);
                 if (iter == instruments.end ())
                 {
@@ -70,13 +76,79 @@ struct StatsObserver : public MsgObserver
                 }
 
                 TOB [m.instrumentId] = m;
+
+        }
+
+        void onInsertOrder (const Private::InsertOrder & m) override {
+                //1
+                const auto iter = instruments.find (m.instrumentId);
+                if (iter == instruments.end ())
+                {
+                        reject(m, RejectReason::InvalidInstrument);
+                        return;
+                }
+
+                //2
+                if (m.price < 0) {
+                        reject(m, RejectReason::InvalidPrice);
+                        return;
+                }
+                //3
+                if (m.quantity < 0) {
+                        reject(m, RejectReason::InvalidQuantity);
+                        return;
+                }
+                //4
+
+                const auto it = orders.find (m.clientOrderId);
+                if (it != orders.end ())
+                {
+                        reject(m, RejectReason::InvalidOrderId);
+                        return;
+                }
+
+
+                //5
+                if(m.price * m.quantity >= 10000000000) {
+                        reject(m, RejectReason::InvalidNotionalValue);
+                        return;
+                }
+
+                //6
+                if (m.side == Side::Buy) {
+                        double spread = fabs (((double)TOB [m.instrumentId].askPrice - m.price) / TOB [m.instrumentId].askPrice);
+
+                        if(spread >= 0.1) {
+                                reject(m, RejectReason::NotionalLimitExceeded);
+                                return;
+                        }
+                }
+                if (m.side == Side::Sell) {
+                        double spread = fabs (((double)TOB [m.instrumentId].bidPrice - m.price) / TOB [m.instrumentId].bidPrice);
+                        if(spread >= 0.1) {
+                                reject(m, RejectReason::NotionalLimitExceeded);
+                                return;
+                        }
+                }
+
+
+
+
+
+
+        }
+
+        void reject(const Private::InsertOrder & m, RejectReason r) {
+                Private::RejectOrderReply ror;
+                ror.instrumentId = m.instrumentId;
+                ror.clientId = m.clientId;
+                ror.clientOrderId = m.clientOrderId;
+                ror.reason = r;
+                enc.send(ror);
         }
 
 
 
-        void onOrderInserted (const Public::OrderInserted & m) override {
-
-        }
 
 
 
@@ -94,7 +166,9 @@ struct StatsObserver : public MsgObserver
         }
         void onOrderReduced (const Public::OrderReduced &) override {
         }
+        void onOrderInserted (const Public::OrderInserted & m) override {
 
+        }
         void onIndexInfo (const Public::IndexInfo &) override {
         }
         void onIndexMemberInfo (const Public::IndexMemberInfo &) override {
@@ -114,8 +188,7 @@ struct StatsObserver : public MsgObserver
         }
         void onRejectOrderReply (const Private::RejectOrderReply &) override {
         }
-        void onInsertOrder (const Private::InsertOrder &) override {
-        }
+
         void onDeleteOrder (const Private::DeleteOrder &) override {
         }
         void onReduceOrder (const Private::ReduceOrder &) override {

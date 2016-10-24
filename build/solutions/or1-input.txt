@@ -1,0 +1,11 @@
+# First order is sent before any instrument info has been received
+21|101|1|20001|60.75|1000|0|2
+2|0|0|101|ERIC B
+3|0|0|101|1
+12|0|0|101|60.75|750|60.85|350
+# Second order should pass risk controls
+21|101|1|20002|60.75|1000|0|2
+# Third order has invalid limit price
+21|101|1|20003|40.75|1000|0|2
+# Fourth order has excessive order value
+21|101|1|20004|60.70|17000|0|2
