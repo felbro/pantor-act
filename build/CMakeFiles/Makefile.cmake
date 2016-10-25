@@ -51,6 +51,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tools/CMakeFiles/secho.dir/DependInfo.cmake"
   "tools/CMakeFiles/reqack.dir/DependInfo.cmake"
   "tools/CMakeFiles/dump.dir/DependInfo.cmake"
+  "solutions/CMakeFiles/or2.dir/DependInfo.cmake"
   "solutions/CMakeFiles/md1.dir/DependInfo.cmake"
   "solutions/CMakeFiles/md2.dir/DependInfo.cmake"
   "solutions/CMakeFiles/md3.dir/DependInfo.cmake"

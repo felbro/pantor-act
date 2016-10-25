@@ -163,6 +163,19 @@ dump/fast:
 .PHONY : dump/fast
 
 #=============================================================================
+# Target rules for targets named or2
+
+# Build rule for target.
+or2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 or2
+.PHONY : or2
+
+# fast build rule for target.
+or2/fast:
+	$(MAKE) -f solutions/CMakeFiles/or2.dir/build.make solutions/CMakeFiles/or2.dir/build
+.PHONY : or2/fast
+
+#=============================================================================
 # Target rules for targets named md1
 
 # Build rule for target.
@@ -226,6 +239,7 @@ help:
 	@echo "... secho"
 	@echo "... reqack"
 	@echo "... dump"
+	@echo "... or2"
 	@echo "... md1"
 	@echo "... md2"
 	@echo "... md3"

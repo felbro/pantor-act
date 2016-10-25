@@ -29,6 +29,10 @@ struct StatsObserver : public MsgObserver
 
         std::unordered_set<u64> orders;
 
+        typedef std::map<u32, u64> outstandingOrders;
+        outstandingOrders OOBuy;
+        outstandingOrders OOSell;
+
 
         Encoder enc;
 
@@ -49,6 +53,8 @@ struct StatsObserver : public MsgObserver
         void onInstrumentInfo (const Public::InstrumentInfo & m) override {
 
                 instruments[m.instrumentId] = 0;
+                OOBuy[m.instrumentId] = 0;
+                OOSell[m.instrumentId] = 0;
         }
 
 
@@ -82,7 +88,7 @@ struct StatsObserver : public MsgObserver
         void onInsertOrder (const Private::InsertOrder & m) override {
                 //1
                 const auto iter = instruments.find (m.instrumentId);
-                if (iter == instruments.end ()|| instruments[m.instrumentId] == 0)
+                if (iter == instruments.end () || instruments[m.instrumentId] == 0)
                 {
                         reject(m, RejectReason::InvalidInstrument);
                         return;
@@ -109,7 +115,7 @@ struct StatsObserver : public MsgObserver
 
 
                 //5
-                if(m.price * m.quantity >= 10000000000) {
+                if(m.price * m.quantity >= 10000000000 ) {
                         reject(m, RejectReason::InvalidNotionalValue);
                         return;
                 }
@@ -122,6 +128,10 @@ struct StatsObserver : public MsgObserver
                                 reject(m, RejectReason::NotionalLimitExceeded);
                                 return;
                         }
+                        u64 diff = m.price*m.quantity - TOB [m.instrumentId].askPrice * TOB [m.instrumentId].askQuantity;
+                        if (diff > 0)
+                                OOBuy[m.instrumentId] += diff;
+
                 }
                 if (m.side == Side::Sell) {
                         double spread = fabs (((double)TOB [m.instrumentId].bidPrice - m.price) / TOB [m.instrumentId].bidPrice);
@@ -129,8 +139,19 @@ struct StatsObserver : public MsgObserver
                                 reject(m, RejectReason::NotionalLimitExceeded);
                                 return;
                         }
+                        u64 diff = m.price*m.quantity - TOB [m.instrumentId].bidPrice * TOB [m.instrumentId].bidQuantity;
+                        if (diff > 0)
+                                OOSell[m.instrumentId] += diff;
                 }
 
+                // if > 5mil
+                if(OOBuy[m.instrumentId] >= 50000000000 || OOSell[m.instrumentId] >= 50000000000) {
+                        reject(m, RejectReason::InvalidNotionalValue);
+                        return;
+                }
+
+
+                //        std::cout << OOBuy[m.instrumentId] << std::endl;
                 orders.insert(m.clientOrderId);
                 enc.send(m);
         }
