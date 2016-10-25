@@ -131,11 +131,8 @@ struct StatsObserver : public MsgObserver
                         }
                 }
 
-
-
-
-
-
+                orders.insert(m.clientOrderId);
+                enc.send(m);
         }
 
         void reject(const Private::InsertOrder & m, RejectReason r) {
